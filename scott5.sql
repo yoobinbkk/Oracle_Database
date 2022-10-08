@@ -187,14 +187,13 @@ avg_salary number ); -- 급여평균
 
 desc stat_salary;
 
+-- (2) 날짜와 부서번호 입력
 select sysdate, deptno from emp group by deptno;
-
 insert into stat_salary(stat_date, dept_no) select sysdate, deptno from emp group by deptno;
 
 select * from stat_salary;
 
--- (2) 날짜와 부서번호 입력
-
+-- (3) 사원수, 급여총액, 평균급여 입력(?) -> 수정
 select count(*), sum(sal) sum, round(avg(sal)) avg
 from emp
 group by deptno;
@@ -205,6 +204,11 @@ set (emp_count, tot_salary, avg_salary)
         from emp e 
         where ss.dept_no = e.deptno
         group by deptno);
+
+drop table stat_salary;
+
+
+
 
 select * from emp_copy;
 drop table emp_copy;
@@ -219,7 +223,7 @@ where deptno = (select deptno from dept where dname = 'SALES');
 
 -- 사원테이블에 존재하는 사원이면 사원의 급여를 10% 인상하고, 존재하지 않는 사원이면 사원테이블에 정보를 입력한다.
 merge into emp_copy ec
-using (select ename from emp) e
+using emp e
 on (ec.ename = e.ename)
 when match then
     update set ec.sal = sal*1.1
@@ -227,9 +231,22 @@ when not matched then
     insert as (select * from emp);
 
 
+create table emp_copy as select * from emp;
 
+delete from emp_copy where hiredate > '81/06/08';
 
+rollback;
 
+merge
+into emp_copy ec
+using emp e
+on (ec.ename = e.ename)
+when matched then
+update set ec.sal = nvl(ec.sal*1.1,0)
+when not matched then
+insert values (e.empno, e.ename, e.job, e.mgr, e.hiredate, e.sal, e.comm, e.deptno);
+
+drop table emp_copy;
 
 
 

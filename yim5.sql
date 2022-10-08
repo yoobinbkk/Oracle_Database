@@ -115,6 +115,10 @@ select *
 from ex_good
 where gno in (select gno from ex_order where status = '배송중');
 
+select g.*, o.status
+from ex_good g inner join ex_order o on o.gno = g.gno and o.status = '배송중';
+--where o.status = '배송중';
+
 --2. 주문 들어온 상품 내역과 고객 정보 출력
 select m.*, g.*
 from ex_order o, ex_good g, ex_member m
@@ -126,22 +130,33 @@ from ex_order o inner join ex_good g on o.gno = g.gno
                 inner join ex_member m on o.id = m.id
 where status = '주문';
 
+-------------------
+SELECT gno,id FROM ex_order WHERE status='주문';
+
+SELECT o.ono 번호, o.gno 상품번호 , m.id 회원아이디, m.name 이름, g.gname
+FROM ex_member m, ex_order o, ex_good g
+WHERE (o.id =m.id and status='주문') and (o.gno=g.gno);
+--------------------
+
 -- 3. 주문별로 고객 정보(아이디)와 주문한 상품의 총금액을 출력
-select m.id, g.price*o.count sum, o.count, g.price
-from ex_order o inner join ex_good g on o.gno = g.gno 
-                inner join ex_member m on o.id = m.id;
+select o.id, sum(g.price*o.count) sum
+from ex_order o inner join ex_good g on o.gno = g.gno
+group by o.id, o.orderno
+order by o.id;
 
 --4. 3번에 주문 내역을 첫번재 상품명 외 몇 개로 출력
--- [예] 20161212   머리끈 외 1개 
-select o.orderno, g.gname || ' 외 ' || sum(o.count-1) || '개' item
+-- [예] 20161212   머리끈 외 1개
+select e.orderno, g.gname || ' 외 ' || (e.count-1) || '개' item
+from (select orderno, max(gno) gno, count(orderno) count from ex_order group by orderno) e, ex_good g
+where e.gno = g.gno;
+
+-- 실패
+select o.orderno, (select g.gname from ex_good g where rownum = 1) || ' 외 ' || (sum(o.count)-1) || '개' item
 from ex_order o inner join ex_good g on o.gno = g.gno 
-                inner join ex_member m on o.id = m.id
-order by o.orderno;
+group by o.orderno;
 
-
-
-select orderno, sum(count)
-from ex_order
-order by orderno;
-
-select g.gname from ex_good where rownum < 2;
+----------------------------------------------------------
+SELECT E.ORDERNO, G.GNAME ||' 외 '||(E.COUNT-1)||'개' GOOD
+FROM (SELECT ORDERNO, MIN(GNO) GNO, COUNT(ORDERNO) COUNT
+FROM EX_ORDER GROUP BY ORDERNO) E, EX_GOOD G
+WHERE E.GNO=G.GNO;

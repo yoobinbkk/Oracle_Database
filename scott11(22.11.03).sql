@@ -46,9 +46,24 @@ CREATE TABLE board_mvc(
 CREATE SEQUENCE seq_board_mvc;
 
 
-INSERT INTO BOARD_MVC VALUES (seq_board_mvc.nextval, 1, 1, 1, sysdate, 0, 1);
-
 INSERT INTO BOARD_MVC VALUES (seq_board_mvc.nextval, 2, 2, 2, sysdate, 0, 2);
 
 INSERT INTO BOARD_MVC VALUES (seq_board_mvc.nextval, 3, 3, 3, sysdate, 0, 3);
 
+
+
+
+CREATE table comment_tab(
+	comment_no number Primary Key,
+	user_id varchar2(30),
+	comment_content varchar2(1024),
+	reg_date date
+);
+
+drop table comment_tab;
+
+INSERT into comment_tab values(1, 1, 1, sysdate);
+INSERT into comment_tab values(2, 2, 2, sysdate);
+INSERT into comment_tab values(3, 3, 3, sysdate);
+
+commit;
